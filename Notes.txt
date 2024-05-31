@@ -1,0 +1,211 @@
+SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));
+
+=> Project_model.php
+	function GetTaskIsNotEnd($thread_id = NULL){
+			$thread = '';
+			if($thread_id != '' && $thread_id  != NULL){
+				$thread = ' AND ut.thread_id = '.$thread_id;
+			}	
+			$where = ' ut.status = 1 '. $thread .'	';
+			$select = 'ut.aims_user_task_id as utask_id, ut.date_ended as end_time, ut.status as task_status,';
+			$this->db->select($select);
+			$this->db->from($this->tbl_aims_user_task.' ut');
+			$this->db->where($where);
+			$this->db->order_by("ut.aims_user_task_id","ASC");
+			return $this->db->get()->result_array();
+		
+	}
+=> Leave_model.php 
+
+	function getEmpTimeStamp($data)
+	{
+		$where = "user_id = ".$data['user_id']." AND from_time_stemp";
+		$this->db->select('id,user_id,from_time_stemp,to_time_stemp');
+		$this->db->from($this->aims_emp_leave_days);
+		$this->db->where($where);
+		$this->db->group_by('id','from_time_stemp');
+		$res = $this->db->get()->result_array();
+		return $res;
+	}
+
+=> Common_model.php 
+
+	public function getBreakID($user_id=null){
+		if($this->class_name == 'json'){
+			$USER_ID  = $user_id;
+		}else{
+			$USER_ID = $this->session->userdata('USER_ID');
+		}
+		$to_date = date('Y-m-d');
+		$select = "UB.aims_user_breaks_id as id, UB.start_time as bstart, UB.end_time as bendtime";
+		$where = "UB.user_id = $USER_ID AND UB.break_date = STR_TO_DATE('".$to_date."', '%Y-%m-%d')";	
+		$query = $this->db->select($select)
+						  ->from($this->aims_user_breaks.' UB')
+						  ->where($where)
+						  ->get()
+						  ->result_array();
+		return $query;
+	}
+
+=> 
+echo '<pre>';
+print_r($arr);
+exit;
+echo '</pre>';
+
+
+=>
+git checkout -b feature/
+git checkout -b bugfix/
+
+=> thread.css
+.thread_action {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.thread_action .bill_add{
+    font-size: 16px;
+}
+.thread_action .bill_not{
+    font-size: 18px;
+    cursor: pointer;
+}
+
+
+=> thread.js
+    document.getElementById('bill_check_'+user_track_id).classList.remove('bill_add');
+    document.getElementById('bill_check_'+user_track_id).classList.add('bill_not');  
+    document.getElementById('bill_check_'+user_track_id).onclick = null; 
+    document.getElementById('bill_check_' + user_track_id).innerText = 'task_alt';
+
+=> thread_time_log.php
+	if ($foundMatchingEntry) {
+					$tab['action'] .= '<i class="bill_add material-symbols-outlined" id="bill_check_'.$tdata['utask_id'].'" aria-hidden="true">task_alt</i> | ';
+				} else{
+					$tab['action'] .= '<i class="bill_not material-symbols-outlined" id="bill_check_'.$tdata['utask_id'].'" aria-hidden="true" onclick="add_billable_time('.$tdata['utask_id'].',\''.$tdata['user_id'].'\',\''.$tdata['start_time'].'\',\''.$tdata['end_time'].'\',\''.$t_time.'\',\''.$tdata['task_name'].'\')" title="Add to billable">more_time</i> | ';
+				}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+if ($userType == getAdminUserType() || $userType == getHRUserType()) {
+	if($emp_data[0]['uid'] != $this->session->userdata('USER_ID')) {
+    $active = $emp_data[0]['active_flag'] == '0' ? 'Deactive' : 'Active';
+    $deleteFlag = $emp_data[0]['delete_flag'];
+
+    if ($deleteFlag == 1) {
+        ?>
+		 <a href="<?= base_url('user/employee/permanent_delete?uid=' . base64_encode($emp_data[0]['uid'])); ?>" target="_blank">
+            <span onclick="return confirm('Are you sure want to permanently delete user?')">
+                <input type="button" class="orange-btn reset-btns button-effect" value="Permanent Delete">
+            </span>
+        </a>
+        <a href="<?= base_url('user/employee/employee_delete?uid=' . base64_encode($emp_data[0]['uid']) . '&flag=' . base64_encode($emp_data[0]['delete_flag'])); ?>" class="custom-toggle" onclick="return confirm('Are you sure you want to Activate user')">
+            <span>
+                <img src="<?= base_url('assets/img/inactive_leave.png'); ?>" title="Activate">
+            </span>
+        </a>
+        <?php
+    } else {
+        ?>
+        <a href="<?= base_url('logout/m_login?email='.base64_encode($emp_data[0]['uemail']).'&pass='.base64_encode($emp_data[0]['upass']));?>" target="_blank"><input type="button" class=" orange-btn reset-btns button-effect" id="movetots" value="Login"></a>
+        <input type="button" class="orange-btn reset-btns button-effect" value="Move To Trash" onclick="leave_date('<?php echo base_url().'user/employee/employee_del/'.$uid; ?>')">
+        <input type="button" class="orange-btn reset-btns button-effect" value="Reset Password" onclick="resetPassword(<?= $uid; ?>)">
+        <?php
+        if ($active == "Deactive") { ?>
+            <a href="<?= base_url('user/employee/avt_employee?userid=' . $emp_data[0]['uid'] . '&active_flag=1'); ?>" class="custom-toggle">
+                <span onclick="return confirm('Are you sure you want to Deactivate user')">
+                    <img src="<?= base_url('assets/img/active_leave.png'); ?>" title="Deactivate">
+                </span>
+            </a>
+        <?php } else if ($active == "Active") { ?>
+            <a href="<?= base_url('user/employee/avt_employee?userid=' . $emp_data[0]['uid'] . '&active_flag=0'); ?>" class="custom-toggle">
+                <span onclick="return confirm('Are you sure you want to Activate user')">
+                    <img src="<?= base_url('assets/img/inactive_leave.png'); ?>" title="Activate">
+                </span>
+            </a>
+        <?php }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+if ($userType == getAdminUserType() || $userType == getHRUserType()) {
+	if($emp_data[0]['uid'] != $this->session->userdata('USER_ID')) {
+    $active = $emp_data[0]['active_flag'] == '0' ? 'Deactive' : 'Active';
+    $deleteFlag = $emp_data[0]['delete_flag'];
+
+    if ($deleteFlag == 1) {
+        ?>
+		 <a href="<?= base_url('user/employee/permanent_delete?uid=' . base64_encode($emp_data[0]['uid'])); ?>" target="_blank">
+            <span onclick="return confirm('Are you sure want to permanently delete user?')">
+                <input type="button" class="orange-btn reset-btns button-effect" value="Permanent Delete">
+            </span>
+        </a>
+        <a href="<?= base_url('user/employee/employee_delete?uid=' . base64_encode($emp_data[0]['uid']) . '&flag=' . base64_encode($emp_data[0]['delete_flag'])); ?>" class="custom-toggle" onclick="return confirm('Are you sure you want to Activate user')">
+            <span>
+			<input type="button" class="orange-btn reset-btns button-effect" value="Deactive" title="Active">
+            </span>
+        </a>
+        <?php
+    } else {
+        ?>
+        <a href="<?= base_url('logout/m_login?email='.base64_encode($emp_data[0]['uemail']).'&pass='.base64_encode($emp_data[0]['upass']));?>" target="_blank"><input type="button" class=" orange-btn reset-btns button-effect" id="movetots" value="Login"></a>
+        <input type="button" class="orange-btn reset-btns button-effect" value="Move To Trash" onclick="leave_date('<?php echo base_url().'user/employee/employee_del/'.$uid; ?>')">
+        <input type="button" class="orange-btn reset-btns button-effect" value="Reset Password" onclick="resetPassword(<?= $uid; ?>)">
+        <?php
+        if ($active == "Deactive") { ?>
+            <a href="<?= base_url('user/employee/avt_employee?userid=' . $emp_data[0]['uid'] . '&active_flag=1'); ?>" class="custom-toggle">
+                <span onclick="return confirm('Are you sure you want to Deactivate user')">
+				<input type="button" class="orange-btn reset-btns button-effect" value="Active" title="Deactvie">
+                </span>
+            </a>
+        <?php } else if ($active == "Active") { ?>
+            <a href="<?= base_url('user/employee/avt_employee?userid=' . $emp_data[0]['uid'] . '&active_flag=0'); ?>" class="custom-toggle">
+                <span onclick="return confirm('Are you sure you want to Activate user')">
+				<input type="button" class="orange-btn reset-btns button-effect" value="Deactive" title="Active">
+                </span>
+            </a>
+        <?php }
+    }
+}
