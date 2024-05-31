@@ -17,6 +17,64 @@ function EMS1174(){
 		echo 'Column Modify Successfully.';
 	}
 
+public function StartMyBreak()
+	{
+
+		 $user_id = $this->input->post('user_id');
+		//  echo $user_id;exit;
+		 if (is_user_on_break($user_id, $this->common_model)) {
+			echo 'already on break';
+		}
+		$data['user_id'] = $user_id;
+		$data['start_time'] = date('Y-m-d H:i:s');
+		$data['break_date'] = date('Y-m-d');
+		$data1 = $this->common_model->StartMyBreak($data);
+		echo json_encode($data1);
+	}
+	public function EndMyBreak()
+	{
+		  $where = EndMyBreak($this->input, $this->common_model);
+
+    // Set the end time
+    $data['end_time'] = date('Y-m-d H:i:s');
+
+    // End the break session
+    $data1 = $this->common_model->EndMyBreak($data, $where);
+
+    // Return the result
+    echo json_encode($data1);
+	}
+
+
+if (!function_exists('is_user_on_break')) {
+    function is_user_on_break($user_id, $common_model) {
+        $user_data['user_id'] = $user_id;
+        // echo $user_data['user_id'];exit;
+        // $user_data['br.end_time'] = '0000-00-00 00:00:00';
+        $user_break = $common_model->GetCurrentBreakDetail($user_data);
+        return $user_break !== 0;
+    }
+}
+
+if (!function_exists('EndMyBreak')) {
+    function EndMyBreak($input, $common_model) {
+        $where = [];
+        if ($input->post('break_id') == '') {
+            $dat = $common_model->getBreakID();
+            $where['aims_user_breaks_id'] = $dat[0]['id'];
+        } else {
+            $datas = $common_model->check_end_break($input->post('break_id'));
+            if ($datas == 1) {
+                echo json_encode(true);
+                exit;
+            } else {
+                $where['aims_user_breaks_id'] = $input->post('break_id');
+            }
+        }
+        return $where;
+    }
+}
+
 => Project_model.php
 	function GetTaskIsNotEnd($thread_id = NULL){
 			$thread = '';
