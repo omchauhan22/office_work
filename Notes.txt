@@ -1,5 +1,22 @@
 SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));
 
+function EMS1174(){
+		$this->load->dbforge();
+		$field = array(
+			'end_time' => array(
+				'type' => 'DATETIME',
+				'null' => true,
+			),
+		);
+		$this->db->query('SET SESSION sql_mode = ""');
+        $this->db->set('end_time', NULL);
+        $this->db->where('end_time', '0000-00-00 00:00:00');
+        $this->db->update('aims_user_breaks');
+        $this->db->query('SET SESSION sql_mode = "STRICT_ALL_TABLES"');
+		$this->dbforge->modify_column('aims_user_breaks', $field);
+		echo 'Column Modify Successfully.';
+	}
+
 => Project_model.php
 	function GetTaskIsNotEnd($thread_id = NULL){
 			$thread = '';
