@@ -1,71 +1,88 @@
-<div id="content" class="lunch_log">
+<div id="content" class="all_log_user filter_search_field"> 
 	<div class="outer">
 		<div class="container">
 			<div class="lter">
 				<div class="box">
+					<head>
+					<meta name="viewport" content="width=device-width, initial-scale=1.0">
+					<link rel="stylesheet" href="<?php echo base_url("bootstrap/css/bootstrap.css"); ?>">
 					<header class="main-title">
-						<div class="icons"> <i class="fa fa-list-alt"></i> </div>
-						<h5>Lunch Log</h5>
+						<div class="icons">
+							<i class="fa fa-list-alt"></i>
+						</div>
+						<h5>All Log By User</h5>
 					</header>
-				</div> 
+					<head> 
 				<div class="filter_search_portion">
-					<form method="post" action="<?php echo base_url('report/log_data/GetLunchUserLog') ?>" class="form-horizontal" enctype="multipart/form-data" id="form_signup" novalidate="novalidate">
-						<!-- <label class="control-label col-lg-4">&nbsp;<b>Lunch Employee Log </b></label>-->
+					<form method="post" id="Final_log_form" action="<?php echo base_url('report/log_data/GetfinaleReport') ?>" class="form-horizontal" enctype="multipart/form-data" novalidate="novalidate">
+						<!--<label class="control-label col-lg-12"><b>Final Report -- </b></label>-->
+							<?php if(in_array($this->session->userdata('USER_TYPE'),array(10, 20, 130))){ ?>
+						<div class="col-lg-3">
+							<label class="control-label col-lg-12">Select Dropdown</label>
+							<div class="w-100 select_box">
+								<select name="uname" class="form-control" id="u_name">
+									<option value="">All Users</option>
+									<?php 
+
+									if(!empty($user_data)){
+									foreach($user_data as $val){ 
+									if($val['user_type'] != 60){
+									$select = $this->input->post('uname') == $val['user_id'] ? 'selected="selected"' : '';
+									?>
+									<option value="<?php echo $val['user_id'] ?>" <?php echo $select; ?>><?php echo $val['user_first_name'].' '.$val['user_last_name'] ?></option>
+									<?php
+									}
+									}
+									}
+
+									?> 
+								</select>
+							</div>
+						</div>
+						<?php } ?>
 						<div class="col-lg-2">
-							<input type="text" class="form-control" name="mlogdate" value="<?php echo $this->input->post('mlogdate') != '' ? date('Y/m/d',strtotime($this->input->post('mlogdate'))) : date('Y/m/d'); ?>" id="mlogdate" /> 
+							<label class="control-label w-100">From Date</label>
+							<div class="w-100">
+								<input type="text" class="form-control" name="flogdate" value="<?php echo $this->input->post('flogdate') != '' ? date('Y/m/d',strtotime($this->input->post('flogdate'))) : date('Y/m/d'); ?>" id="flogdate" />
+							</div>
 						</div>
 						<div class="col-lg-2">
-							<input type="submit" name="morning_log" value="Submit" class="button-block button-effect">
+							<label class="control-label w-100">To Date</label>
+							<div class="w-100">
+								<input type="text" class="form-control" name="tlogdate" value="<?php echo $this->input->post('tlogdate') != '' ? date('Y/m/d',strtotime($this->input->post('tlogdate'))) : date('Y/m/d'); ?>" id="tlogdate" />
+							</div>
 						</div>
-						<div class="pull-right per_page_option col-sm-3 text-right">
-							<?php echo per_page_options(); ?>
+						<div class="form-actions no-margin-bottom col-lg-2">        
+							<input type="submit" name="FinalLog" onclick="return checkDatepickerDate('#flogdate', '#tlogdate')" value="Submit" class="button-effect">        
 						</div>
 					</form>
 				</div>
-				<div class="table-responsive">
-					<div id="table">
-					<?php echo $html; ?>
+				</head>	
+				<body>
+					<div id="table" class="table-responsive">
+						<table id="final_user_log_grid" class="table table-hove ">
+							<thead>
+								<tr>
+									<td>No.</td>
+									<td>Name</td>
+									<td>Date</td>
+									<td>Start Time</td>
+									<td>Morning Message</td>
+									<td>Working Hours</td>
+									<td>Lunch Start</td>
+									<td>Lunch Finish</td>
+									<td>Lunch Message</td>
+									<td>Break Time</td>
+									<td>End Time</td>
+									<td>Total Time</td>
+									<td>Action</td>
+								</tr>
+							</thead>	
+						</table>
 					</div>
+				</body>
 				</div>
-				<div class="paging" style="text-align:center">
-					<ul class="pagination" id="paginator">
-						<?php echo $this->pagination->create_links(); ?>
-					</ul>
-				</div>  
 			</div><!-- /.inner -->
 		</div>
 	</div><!-- /.outer -->
 </div>
-<script>
-$(function(){
-	$('#mlogdate').datepicker();
-});
-
-$(document).on('click',"#paginator a",function(){
-	var cur_page = $(this).attr('data-ci-pagination-page');
-	var per_page = $("#data_per_page").val();
-	var url = '<?php echo base_url('report/log_data/GetLunchUserLogPagination/'); ?>'+cur_page;
-	var date = $('#mlogdate').val();
-	var data = {'mlogdate':date,'per_page':per_page};
-	paginate(url,data);
-});
-$(document).on('change',"#data_per_page",function(){
-	var date = $('#mlogdate').val();
-	var url = '<?php echo base_url('report/log_data/GetLunchUserLogPagination/'); ?>';
-	var data = {'per_page':$(this).val(),'mlogdate':date};
-	paginate(url,data);
-});
-function edit_time(user_type, lunch_start, lunch_finish) {
-    var start_input = '<input type="text" id="edit_lunch_start_' + user_type + '" value="' + lunch_start + '">';
-    var finish_input = '<input type="text" id="edit_lunch_finish_' + user_type + '" value="' + lunch_finish + '">';
-    
-    $('#lunch_start_' + user_type).html(start_input);
-    $('#lunch_finish_' + user_type).html(finish_input);
-    
-    $('#edit_lunch_start_' + user_type).datepicker(); // Initialize datepicker for start time
-    $('#edit_lunch_finish_' + user_type).datepicker(); // Initialize datepicker for finish time
-    
-    // Show the save button
-    $('#save_' + user_type).show();
-}
-</script>
