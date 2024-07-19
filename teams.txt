@@ -1,0 +1,44 @@
+om.c@anantkprajapati.com
+KUwNi9VAUO1n
+md-in33.webhostbox.net
+anant@aimsinfosoft.com
+DEV : https://devems.aimsinfosoft.com/
+
+
+
+=> Project_model.php
+	function GetTaskIsNotEnd($thread_id = NULL){
+			$thread = '';
+			if($thread_id != '' && $thread_id  != NULL){
+				$thread = ' AND ut.thread_id = '.$thread_id;
+			}	
+			$where = ' ut.status = 1 '. $thread .'	';
+			$select = 'ut.aims_user_task_id as utask_id, ut.date_ended as end_time, ut.status as task_status,';
+			$this->db->select($select);
+			$this->db->from($this->tbl_aims_user_task.' ut');
+			$this->db->where($where);
+			$this->db->order_by("ut.aims_user_task_id","ASC");
+			return $this->db->get()->result_array();
+	}
+ 
+=> Leave_model.php
+ 
+	function getEmpTimeStamp($data)
+	{
+		$where = "user_id = ".$data['user_id']." AND from_time_stemp";
+		$this->db->select('id,user_id,from_time_stemp,to_time_stemp');
+		$this->db->from($this->aims_emp_leave_days);
+		$this->db->where($where);
+		$this->db->group_by('id','from_time_stemp');
+		$res = $this->db->get()->result_array();
+		return $res;
+	}
+
+
+<?php
+echo "<pre>";
+print_r($recorData);
+exit;
+?>
+
+

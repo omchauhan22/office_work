@@ -1,0 +1,108 @@
+public function GetLunchUserLog(){
+		$page_title['page_title'] = 'Lunch Report';
+		$this->load->view('header',$page_title);
+		$this->load->view('menu');
+		
+		if($this->session->userdata('per_page') AND $this->session->userdata('per_page') != ''){
+			$per_page = $this->session->userdata('per_page');
+		}else{
+			$per_page = $this->per_page;
+		}
+		
+		$user_data = $this->log_data_model->get_User($per_page);
+			
+		$config = getPaginationConfig($per_page,4,count($this->log_data_model->get_User()));
+		
+		$this->pagination->initialize($config);
+		$data = array();
+		$i = 0;
+		$l = 1;
+		
+		$this->load->library('table');
+		
+		$this->table->set_template(table_template());
+		
+		$head = array('No.','Employee Name','User Type','Lunch Start','Lunch Finish','Lunch Message', 'Total Lunch', 'Action' );
+	
+		$this->table->set_heading($head);
+		foreach($user_data as $udata){
+			$response = $this->log_data_model->GetLunchUserLog($udata['user_id']);
+			if(!empty($response)){
+				foreach($response as $val){
+					$data[$i]['No.'] = $l++;
+					$data[$i]['employee_name'] = $val['username'];
+					$data[$i]['user_type'] = $val['rolename'];
+					$starttime = explode(" ",$val['start_time']);
+
+					if($val['lunch_start'] != '' && $val['lunch_start'] != NULL && $val['lunch_out'] != '' && $val['lunch_out'] != NULL){
+						$starttimelunch = explode(" ",$val['lunch_start']);
+						$finishtimelunch = explode(" ",$val['lunch_out']);
+						$data[$i]['lunch_start'] 	= getTimeFormat($starttimelunch[1],'h:i:s A');
+						$data[$i]['lunch_finish'] 	= getTimeFormat($finishtimelunch[1],'h:i:s A');
+						$checkTime = strtotime($val['lunch_out']);
+						$loginTime = strtotime($val['lunch_start']);
+						$diff = $checkTime - $loginTime;
+						$data[$i]['lunch_message']['data'] = $diff < 3600 ? 'On time!' : 'Late!';
+						$res = $data[$i]['lunch_message']['data'];
+						if($res == 'On time!'){
+							$data[$i]['lunch_message']['style']  = $res == '' |	| $res != NULL ? 'background:#81e496;' : '';
+						}else if($res == 'Late!'){
+							$data[$i]['lunch_message']['style']  = $res == '' || $res != NULL ? 'background:#ff8b71;' : '';
+						}
+						
+					}else{
+						
+						$data[$i]['lunch_start'] = $val['lunch_start'] != '' ? $val['lunch_start'] : '--';
+						$data[$i]['lunch_finish'] = $val['lunch_out'] != '' ? $val['lunch_out'] : '--';
+						$data[$i]['lunch_message']	= '--';	
+					}
+					$lstart = $val['lunch_start'] != '' && $val['lunch_start'] != NULL ? $val['lunch_start'] : '';
+					$lend = $val['lunch_out'] != '' && $val['lunch_out'] != NULL ? $val['lunch_out'] : date('Y-m-d H:i:s');
+					$userType = $this->session->userdata('USER_TYPE');
+					$data[$i]['lunch_total'] = $lstart != '' ? $this->dateTimeToTime($lstart, $lend) : '00:00:00';
+					if ($userType == getAdminUserType()) {
+						$data[$i]['Action'] = '<a class="fa fa-pencil-square-o" style="color: #000;" title="Edit" id="action_edit_' . $udata['employee_name'] . '" href="javascript:void(0)" onclick="edit_time(\''.$udata['user_type'].'\',\''.$val['lunch_start'].'\',\''.$val['lunch_out'].'\')"></a> | 
+										  <a class="fa fa-trash" style="color: #000;" title="Remove" id="action_remove_' . $udata['employee_name'] . '" onclick="remove_lunch_time(' . $udata['employee_name'] . ',\'' . json_encode($udata) . '\')"></a>
+										  <input type="hidden" id="user_id_' . $udata['employee_name'] . '" value="' . $udata['user_id'] . '">
+										  <input type="hidden" id="lunch_start_' . $udata['employee_name'] . '" value="' . htmlspecialchars($val['lunch_start']) . '">
+										  <input type="hidden" id="lunch_finish_' . $udata['employee_name'] . '" value="' . htmlspecialchars($val['lunch_out']) . '">
+										  <button id="save_' . $udata['employee_name'] . '" style="display: none;">Save</button>';
+					} else {
+						$data[$i]['Action'] = ''; // No action for non-admin users
+					}
+					
+					$this->table->add_row($data[$i]);
+				}
+			}else{
+				$data[$i]['No.'] = $l++;
+				$data[$i]['employee_name'] 	= $udata['user_first_name'].' '.$udata['user_last_name'];
+				$role = $this->log_data_model->get_user_type($udata['user_type']);
+				$data[$i]['user_type'] = @$role[0]['user_type_name'];
+				
+				$data[$i]['lunch_start'] = '--';
+				$data[$i]['lunch_finish'] = '--';
+				$data[$i]['lunch_message']	= '--';
+				$data[$i]['lunch_total'] = '00:00:00';
+				if ($userType == getAdminUserType()) {
+					$data[$i]['Action'] = '<a class="fa fa-pencil-square-o" style="color: #000;" title="Edit" id="action_edit_' . $udata['employee_name'] . '" href="javascript:void(0)" onclick="edit_time(\''.$udata['employee_name'].'\',\''.$val['lunch_start'].'\',\''.$val['lunch_out'].'\')"></a> | 
+									  <a class="fa fa-trash" style="color: #000;" title="Remove" id="action_remove_' . $udata['employee_name'] . '" onclick="remove_lunch_time(' . $udata['employee_name'] . ',\'' . json_encode($udata) . '\')"></a>
+									  <input type="hidden" id="user_id_' . $udata['employee_name'] . '" value="' . $udata['user_id'] . '">
+									  <input type="hidden" id="lunch_start_' . $udata['employee_name'] . '" value="' . htmlspecialchars($val['lunch_start']) . '">
+									  <input type="hidden" id="lunch_finish_' . $udata['employee_name'] . '" value="' . htmlspecialchars($val['lunch_out']) . '">
+									  <button id="save_' . $udata['employee_name'] . '" style="display: none;">Save</button>';
+				} else {
+					$data[$i]['Action'] = ''; // No action for non-admin users
+				}
+				
+				$this->table->add_row($data[$i]);
+			}
+			$i++;
+		}	
+		$table = $this->table->generate();
+		$sheet['data'] = $table;
+		$html = $table.'</body></html>';
+		$this->load->library('email');
+		$view['html'] = $html;
+		$this->load->view('report/user_log_lunch',$view);
+		$this->load->view('footer');
+	}

@@ -1,0 +1,71 @@
+<div id="content" class="lunch_log">
+	<div class="outer">
+		<div class="container">
+			<div class="lter">
+				<div class="box">
+					<header class="main-title">
+						<div class="icons"> <i class="fa fa-list-alt"></i> </div>
+						<h5>Lunch Log</h5>
+					</header>
+				</div> 
+				<div class="filter_search_portion">
+					<form method="post" action="<?php echo base_url('report/log_data/GetLunchUserLog') ?>" class="form-horizontal" enctype="multipart/form-data" id="form_signup" novalidate="novalidate">
+						<!-- <label class="control-label col-lg-4">&nbsp;<b>Lunch Employee Log </b></label>-->
+						<div class="col-lg-2">
+							<input type="text" class="form-control" name="mlogdate" value="<?php echo $this->input->post('mlogdate') != '' ? date('Y/m/d',strtotime($this->input->post('mlogdate'))) : date('Y/m/d'); ?>" id="mlogdate" /> 
+						</div>
+						<div class="col-lg-2">
+							<input type="submit" name="morning_log" value="Submit" class="button-block button-effect">
+						</div>
+						<div class="pull-right per_page_option col-sm-3 text-right">
+							<?php echo per_page_options(); ?>
+						</div>
+					</form>
+				</div>
+				<div class="table-responsive">
+					<div id="table">
+					<?php echo $html; ?>
+					</div>
+				</div>
+				<div class="paging" style="text-align:center">
+					<ul class="pagination" id="paginator">
+						<?php echo $this->pagination->create_links(); ?>
+					</ul>
+				</div>  
+			</div><!-- /.inner -->
+		</div>
+	</div><!-- /.outer -->
+</div>
+<script>
+$(function(){
+	$('#mlogdate').datepicker();
+});
+
+$(document).on('click',"#paginator a",function(){
+	var cur_page = $(this).attr('data-ci-pagination-page');
+	var per_page = $("#data_per_page").val();
+	var url = '<?php echo base_url('report/log_data/GetLunchUserLogPagination/'); ?>'+cur_page;
+	var date = $('#mlogdate').val();
+	var data = {'mlogdate':date,'per_page':per_page};
+	paginate(url,data);
+});
+$(document).on('change',"#data_per_page",function(){
+	var date = $('#mlogdate').val();
+	var url = '<?php echo base_url('report/log_data/GetLunchUserLogPagination/'); ?>';
+	var data = {'per_page':$(this).val(),'mlogdate':date};
+	paginate(url,data);
+});
+function edit_time(user_type, lunch_start, lunch_finish) {
+    var start_input = '<input type="text" id="edit_lunch_start_' + user_type + '" value="' + lunch_start + '">';
+    var finish_input = '<input type="text" id="edit_lunch_finish_' + user_type + '" value="' + lunch_finish + '">';
+    
+    $('#lunch_start_' + user_type).html(start_input);
+    $('#lunch_finish_' + user_type).html(finish_input);
+    
+    $('#edit_lunch_start_' + user_type).datepicker(); // Initialize datepicker for start time
+    $('#edit_lunch_finish_' + user_type).datepicker(); // Initialize datepicker for finish time
+    
+    // Show the save button
+    $('#save_' + user_type).show();
+}
+</script>
