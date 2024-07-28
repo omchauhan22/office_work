@@ -127,7 +127,46 @@ if(!function_exists('getDateFormat')){
 
 
 
+function edit_lunch_time(uid, row) {
+    // Hide edit and delete buttons, show save and cancel buttons
+    $('#action_edit_' + uid).hide();
+    $('#action_delete_' + uid).hide();
+    $('#save_' + uid).show();
+    $('#cancel_' + uid).show();
 
+    // Convert the cell to a timepicker
+    var lunchStartCell = $('td:eq(6)', row);
+    lunchStartCell.addClass('lunch-start-' + uid);
+
+    // Retrieve the stored time from the cell's text
+    var storedTime = lunchStartCell.text().trim();
+
+    // Convert stored time to HH:MM:SS format
+    function convertToTimeFormat(time) {
+        // Assuming the format is h:mm:ss A/PM
+        var timeParts = time.split(':');
+        var hours = timeParts[0].trim();
+        var minutes = timeParts[1].trim();
+        var secondsPeriod = timeParts[2].trim().split(' ');
+        var seconds = secondsPeriod[0];
+        var period = secondsPeriod[1];
+
+        if (period === 'PM' && hours !== '12') {
+            hours = (parseInt(hours) + 12).toString();
+        } else if (period === 'AM' && hours === '12') {
+            hours = '00';
+        }
+        
+        return hours.padStart(2, '0') + ':' + minutes.padStart(2, '0') + ':' + seconds.padStart(2, '0');
+    }
+
+    var timeFormatted = convertToTimeFormat(storedTime);
+
+    // Add an input element for the timepicker if it doesn't exist
+    if (lunchStartCell.find('input').length === 0) {
+        lunchStartCell.html('<input type="time" class="timepicker" value="' + timeFormatted + '" />');
+    }
+}
 
 
 
