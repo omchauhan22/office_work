@@ -124,60 +124,85 @@ if(!function_exists('getDateFormat')){
 
 
 
+function get_break_data($uid,$date){
+		$select = ' IF(ub.is_break_ongoing != "1",TIMEDIFF(ub.end_time, ub.start_time),"") as time_diff ,ub.start_time, ub.end_time';
+		$where = ' DATE(ub.break_date) = DATE("'.$date.'") AND ub.user_id = '.$uid;
+		$data = $this->db->select($select)->from($this->aims_user_breaks.' ub')->where($where)->get()->result_array();
+		return $data;
+	}
 
 
-
-function edit_lunch_time(uid, row) {
-    // Hide edit and delete buttons, show save and cancel buttons
-    $('#action_edit_' + uid).hide();
-    $('#action_delete_' + uid).hide();
-    $('#save_' + uid).show();
-    $('#cancel_' + uid).show();
-
-    // Convert the cell to a timepicker for lunch start time
-    var lunchStartCell = $('td:eq(6)', row);
-    lunchStartCell.addClass('lunch-start-' + uid);
-
-    // Convert the cell to a timepicker for lunch finish time
-    var lunchFinishCell = $('td:eq(7)', row);
-    lunchFinishCell.addClass('lunch-finish-' + uid);
-
-    // Retrieve the stored time from the cell's text
-    var storedStartTime = lunchStartCell.text().trim();
-    var storedFinishTime = lunchFinishCell.text().trim();
-
-    // Convert stored time to HH:MM:SS format
-    function convertToTimeFormat(time) {
-        // Assuming the format is h:mm:ss A/PM
-        var timeParts = time.split(':');
-        var hours = timeParts[0].trim();
-        var minutes = timeParts[1].trim();
-        var secondsPeriod = timeParts[2].trim().split(' ');
-        var seconds = secondsPeriod[0];
-        var period = secondsPeriod[1];
-
-        if (period === 'PM' && hours !== '12') {
-            hours = (parseInt(hours) + 12).toString();
-        } else if (period === 'AM' && hours === '12') {
-            hours = '00';
-        }
+if (!function_exists('timeToSeconds')) {
+    function timeToSeconds($time) {
+        // Split the input time into parts
+        $parts = explode(':', $time);
         
-        return hours.padStart(2, '0') + ':' + minutes.padStart(2, '0') + ':' + seconds.padStart(2, '0');
-    }
+        // Set default values and pad single-digit numbers with leading zero
+        $hours = str_pad(isset($parts[0]) ? $parts[0] : '0', 2, '0', STR_PAD_LEFT);
+        $minutes = str_pad(isset($parts[1]) ? $parts[1] : '0', 2, '0', STR_PAD_LEFT);
+        $seconds = str_pad(isset($parts[2]) ? $parts[2] : '0', 2, '0', STR_PAD_LEFT);
 
-    var startTimeFormatted = convertToTimeFormat(storedStartTime);
-    var finishTimeFormatted = convertToTimeFormat(storedFinishTime);
+        // Convert to integers
+        $hours = (int)$hours;
+        $minutes = (int)$minutes;
+        $seconds = (int)$seconds;
 
-    // Add an input element for the timepicker if it doesn't exist for lunch start
-    if (lunchStartCell.find('input').length === 0) {
-        lunchStartCell.html('<input type="time" class="timepicker" value="' + startTimeFormatted + '" />');
-    }
-
-    // Add an input element for the timepicker if it doesn't exist for lunch finish
-    if (lunchFinishCell.find('input').length === 0) {
-        lunchFinishCell.html('<input type="time" class="timepicker" value="' + finishTimeFormatted + '" />');
+        // Calculate total seconds
+        return (3600 * $hours) + (60 * $minutes) + $seconds;
     }
 }
+
+if (!function_exists('timeToSeconds')) {
+    function timeToSeconds($time) {
+        $parts = explode(':', $time);
+        // $test = 
+        // Ensure there are exactly three parts
+        if (count($parts) != 3) {
+            log_message('error', 'Invalid time format: ' . $time);
+            return 0;
+        }
+        
+        $hours = (int)$parts[0];
+        $minutes = (int)$parts[1];
+        $seconds = (int)$parts[2];
+        // Validate each part is numeric and convert to integers
+        foreach($parts as $part){
+            if (is_numeric($hours) || is_numeric($minutes) || is_numeric($seconds)) {
+                log_message('error', 'Non-numeric value encountered: ' . $part);
+                return 0;
+            }
+        }
+    
+            
+        // Convert parts to integers
+        
+        // Return the total seconds
+        return (3600 * $hours) + (60 * $minutes) + $seconds;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
